@@ -149,7 +149,8 @@ function processAndUpdateNext(currentClassSettingData, todaysClassesData) {
 
     // next period title
     const nextPeriod = (currentPeriod >= 6) ? 1 : (currentPeriod + 1);
-    const nextPeriodData = todaysClassesData.find(clses => clses.period == nextPeriod);
+    // get next period data as an array to match usage of [0] elsewhere
+    const nextPeriodData = todaysClassesData.filter(clses => clses.period == nextPeriod);
     document.getElementById('next-subject-title').innerText = "次は" + nextPeriod + "限 - " + nextPeriodData[0].className;
 
     const nextTimeSheetData = scheduleData.find(cls => cls.period == nextPeriod);
@@ -171,7 +172,8 @@ function processAndUpdateNext(currentClassSettingData, todaysClassesData) {
     document.getElementById('next-subject').innerHTML = nextPeriodData[0].className;
     document.getElementById('next-teacher').innerHTML = nextTeacherAndMaterialData.teacher;
     document.getElementById('next-classroom').innerHTML = nextClassSettingData[0].classLocation;
-    document.getElementById('next-class-start').innerHTML = nextTimeSheetData.startTimeH + ":" + (nextTimeSheetData.startTimeH > 9 ? nextTimeSheetData.startTimeM : ("0" + nextTimeSheetData.startTimeM));
+    // format minutes correctly (check minutes, not hours)
+    document.getElementById('next-class-start').innerHTML = nextTimeSheetData.startTimeH + ":" + (nextTimeSheetData.startTimeM >= 10 ? nextTimeSheetData.startTimeM : ("0" + nextTimeSheetData.startTimeM));
     document.getElementById('next-class-end').innerHTML = nextTimeSheetData.endTimeH + ":" + (nextTimeSheetData.endTimeM > 9 ? nextTimeSheetData.endTimeM : ("0" + nextTimeSheetData.endTimeM));
     let nextMats = nextTeacherAndMaterialData.materials;
     if (nextMats == "") {
