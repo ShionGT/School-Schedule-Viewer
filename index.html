@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+    <!-- TIME GOES HERE -->
+    <p id="current-time">
+        時刻
+    </p>
+    <p id="current-day">
+        曜日
+    </p>
+
+    <!-- CURRENT SUBJECT -->
+    <section>
+        <h2 id="current-subject-title">
+            今の科目
+        </h2>
+        <label id="current-subject-time-left" for="current-class-table">
+            残り時間
+        </label>
+
+        <table id="current-class-table" border="1">
+            <tr>
+                <th>科目</th>
+                <th>教官</th>
+                <th>教室</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>持ち物</th>
+            </tr>
+            <tr>
+                <td id="current-subject">科目</td>
+                <td id="current-teacher">先生</td>
+                <td id="current-classroom">教室</td>
+                <td id="current-class-start">時間</td>
+                <td id="current-class-end">時間</td>
+                <td id="current-materials" class="materials">リスト</td>
+            </tr>
+        </table>
+    </section>
+    <!-- UPCOMING SUBJECT -->
+    <section>
+        <h2 id="next-subject-title">
+            次の科目
+        </h2>
+        <label id="next-subject-time-left" for="next-class-table">
+            残り時間
+        </label>
+        <table id="next-class-table" border="1">
+            <tr>
+                <th>科目</th>
+                <th>教官</th>
+                <th>教室</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>持ち物</th>
+            </tr>
+            <tr>
+                <td id="next-subject">科目</td>
+                <td id="next-teacher">先生</td>
+                <td id="next-classroom">教室</td>
+                <td id="next-class-start">時間</td>
+                <td id="next-class-end">時間</td>
+                <td id="next-materials" class="materials">リスト</td>
+            </tr>
+        </table>
+    </section>
+    <script src="js/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/visual.css">
+</body>
+
+</html>

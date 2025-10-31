@@ -1,0 +1,44 @@
+[
+    {
+        "period": 1,
+        "startTimeH": 9,
+        "startTimeM": 30,
+        "endTimeH": 11,
+        "endTimeM": 0
+    },
+    {
+        "period": 2,
+        "startTimeH": 11,
+        "startTimeM": 10,
+        "endTimeH": 12,
+        "endTimeM": 40
+    },
+    {
+        "period": 3,
+        "startTimeH": 12,
+        "startTimeM": 50,
+        "endTimeH": 14,
+        "endTimeM": 20
+    },
+    {
+        "period": 4,
+        "startTimeH": 14,
+        "startTimeM": 30,
+        "endTimeH": 16,
+        "endTimeM": 0
+    },
+    {
+        "period": 5,
+        "startTimeH": 16,
+        "startTimeM": 10,
+        "endTimeH": 17,
+        "endTimeM": 40
+    },
+    {
+        "period": 6,
+        "startTimeH": 17,
+        "startTimeM": 50,
+        "endTimeH": 19,
+        "endTimeM": 20
+    }
+]

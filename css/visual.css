@@ -1,0 +1,32 @@
+body {
+    color: whitesmoke;
+    background-color: #0d1117;
+}
+
+table {
+    border: 3px solid rgb(127, 127, 126);
+    border-color: rgb(127, 127, 126);
+    border-radius: 6px;
+    font-weight: bold;
+    border-collapse: collapse;
+    text-align: center;
+    width: 100%;
+
+}
+
+.materials {
+    width: 40%;
+}
+
+td {
+    padding: 10px;
+}
+
+th {
+    padding: 10px;
+}
+
+section{
+    width: 55%;
+    margin: 0 auto;
+}
