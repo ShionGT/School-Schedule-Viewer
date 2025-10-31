@@ -14,7 +14,7 @@ var weekday = [
 var isOutSideClassTime = false;
 
 // varibales to store json data
-var calenderData, classData, scheduleData;
+var personalClassesDataSet, classSyllabusDataSet, bellScheduleDataSet;
 
 
 // fetch data function
@@ -37,13 +37,13 @@ async function fetchData(filepath) {
 // process all json files function
 async function processDatas() {
     try {
-        calenderData = await fetchData('json/calendar.json')
+        personalClassesDataSet = await fetchData('json/calendar.json')
         console.log("calendar.json loaded.")
 
-        classData = await fetchData('json/class.json')
+        classSyllabusDataSet = await fetchData('json/class.json')
         console.log("class.json loaded.")
 
-        scheduleData = await fetchData('json/schedule.json');
+        bellScheduleDataSet = await fetchData('json/schedule.json');
         console.log("schedule.json loaded.");
     } catch (error) {
         console.error('An error occurred during data processing:', error);
@@ -59,7 +59,7 @@ function searchProcessedDataAndSetVariables() {
 
     let currentPeriod = 0;
     const timeNowMinutes = currentHour * 60 + currentMinute;
-    const currentTimeSheetData = scheduleData.find(time => (time.startTimeH * 60 + time.startTimeM) <= (timeNowMinutes) && (timeNowMinutes) < (time.endTimeH * 60 + time.endTimeM));
+    const currentTimeSheetData = bellScheduleDataSet.find(time => (time.startTimeH * 60 + time.startTimeM) <= (timeNowMinutes) && (timeNowMinutes) < (time.endTimeH * 60 + time.endTimeM));
 
     if (currentTimeSheetData != undefined) {
         currentPeriod = currentTimeSheetData.period;
@@ -91,10 +91,8 @@ function displayTime() {
 function updateCurrentClass(period) {
 
     // calendar.json datas
-    let dayData = calenderData.filter(week => week.day == weekday[dayIndex]);
+    let dayData = personalClassesDataSet.filter(week => week.day == weekday[dayIndex]);
     let classData = dayData.find(cls => cls.period == period);
-
-    console.log("dayData: " + JSON.stringify(dayData) + "\nclassData: " + JSON.stringify(classData));
 
     const currentPeriod = period;
     const className = classData.className;
@@ -102,7 +100,7 @@ function updateCurrentClass(period) {
     const classLocation = classData.classLocation;
 
     // schedule.json datas
-    const timeSheetData = scheduleData.find(cls => cls.period == currentPeriod);
+    const timeSheetData = bellScheduleDataSet.find(cls => cls.period == currentPeriod);
 
     const startTimeH = timeSheetData.startTimeH;
     const startTimeM = timeSheetData.startTimeM;
@@ -110,7 +108,7 @@ function updateCurrentClass(period) {
     const endTimeM = timeSheetData.endTimeM;
 
     // class.json datas
-    let fixedClassData = classData.find(cls => cls.className == className);
+    let fixedClassData = classSyllabusDataSet.find(cls => cls.className == className);
 
     const materials = fixedClassData.materials;
     const teacher = fixedClassData.teacher;
@@ -158,15 +156,15 @@ function updateNextClass(period) {
     }
 
     // calendar.json datas
-    let dayData = calenderData.filter(week => week.day == weekday[dayIndex]);
-    let classData = dayData.find(cls => cls.period == period);
+    let dayData = personalClassesDataSet.filter(week => week.day == weekday[dayIndex]);
+    let classData = dayData.find(cls => cls.period == nextPeriod);
 
     const className = classData.className;
     const isMerged = classData.isMerged;
     const classLocation = classData.classLocation;
 
     // schedule.json datas
-    const timeSheetData = scheduleData.find(cls => cls.period == nextPeriod);
+    const timeSheetData = bellScheduleDataSet.find(cls => cls.period == nextPeriod);
 
     const startTimeH = timeSheetData.startTimeH;
     const startTimeM = timeSheetData.startTimeM;
@@ -174,12 +172,12 @@ function updateNextClass(period) {
     const endTimeM = timeSheetData.endTimeM;
 
     // class.json datas
-    let fixedClassData = classData.find(cls => cls.className == className);
+    let fixedClassData = classSyllabusDataSet.find(cls => cls.className == className);
 
     const materials = fixedClassData.materials;
     const teacher = fixedClassData.teacher;
 
-    document.getElementById('next-subject-title').innerText = "次は" + currentPeriod + "限 - " + className + (isMerged ? " (合同)" : "");
+    document.getElementById('next-subject-title').innerText = "次は" + nextPeriod + "限 - " + className + (isMerged ? " (合同)" : "");
 
     // time remaining
     let timeLeftH = startTimeH - currentHour;
@@ -203,12 +201,11 @@ function updateNextClass(period) {
         nextMats = "なし";
     }
     document.getElementById('next-materials').innerHTML = nextMats;
-
 }
 
 
 /**
- * RUN EVERYTHING HERE
+ * RUNS EVERYTHING HERE
  */
 processDatas().then(() => {
     searchProcessedDataAndSetVariables();
