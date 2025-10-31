@@ -1,0 +1,80 @@
+[
+  {
+    "className": "CS18",
+    "teacher": "中川先生",
+    "materials": [
+      "ITワールド"
+    ]
+  },
+  {
+    "className": "CT18",
+    "teacher": "畑先生",
+    "materials": []
+  },
+  {
+    "className": "DB18",
+    "teacher": "河西先生",
+    "materials": [
+      "スッキリわかるSQL入門"
+    ]
+  },
+  {
+    "className": "FX18",
+    "teacher": "村上先生",
+    "materials": []
+  },
+  {
+    "className": "IH18",
+    "teacher": "村上先生",
+    "materials": []
+  },
+  {
+    "className": "IS18",
+    "teacher": "杉山先生",
+    "materials": [
+      "IT戦略とマネジメント"
+    ]
+  },
+  {
+    "className": "IT18",
+    "teacher": "松本先生",
+    "materials": []
+  },
+  {
+    "className": "JS18",
+    "teacher": "吉川先生",
+    "materials": []
+  },
+  {
+    "className": "PY18",
+    "teacher": "近藤先生",
+    "materials": [
+      "Python"
+    ]
+  },
+  {
+    "className": "SL18",
+    "teacher": "江畑先生",
+    "materials": [
+      "情報セキュリティ 要点＆問題集(１２−１月)",
+      "データ構造とアルゴリズム(１月ー２月)"
+    ]
+  },
+  {
+    "className": "WF18",
+    "teacher": "村上先生",
+    "materials": [
+      "ホームページ辞典"
+    ]
+  },
+  {
+    "className": "OP",
+    "teacher": "",
+    "materials": []
+  },
+  {
+    "className": "ランチタイム",
+    "teacher": "",
+    "materials": []
+  }
+]
