@@ -56,33 +56,16 @@ function searchProcessedDataAndSetVariables() {
     updateTime();
     // displays time here
     displayTime();
-    const currentTimeNumericalValue = currentHour * 60 + currentMinute;
-    const currentTimeSheetData = scheduleData.find(time => (time.startTimeH * 60 + time.startTimeM) <= (currentTimeNumericalValue) && (currentTimeNumericalValue) < (time.endTimeH * 60 + time.endTimeM));
-    // console.log("Current Period Schedule: " + JSON.stringify(currentPeriodScheduleData));
 
-    let todaysClassesData = calenderData.filter(week => week.day == weekday[dayIndex]);
-    // console.log("Today's Classes: " + JSON.stringify(currentDayClassData));
+    let currentPeriod = 0;
+    const timeNowMinutes = currentHour * 60 + currentMinute;
+    const currentTimeSheetData = scheduleData.find(time => (time.startTimeH * 60 + time.startTimeM) <= (timeNowMinutes) && (timeNowMinutes) < (time.endTimeH * 60 + time.endTimeM));
 
-    // is student in school time
-    isOutSideClassTime = todaysClassesData == undefined || currentTimeSheetData == undefined;
-    // console.log("Current Class Data: " + JSON.stringify(currentPeriodScheduleData));
-
-    if (!isOutSideClassTime) {
-        let currentPeriod = currentTimeSheetData.period;
-        let currentClassSettingData = todaysClassesData.filter(item => item.period == currentPeriod);
-        let currentTeacherAndMaterialData = classData.find(cls => cls.className == currentClassSettingData[0].className);
-        processAndUpdateCurrent(currentClassSettingData, currentTimeSheetData, currentTeacherAndMaterialData);
-
-        if (currentPeriod >= 6) {
-            if (dayIndex != 0 && 5 <= dayIndex) {
-                dayIndex = 1;
-            } else {
-                dayIndex++;
-            }
-            todaysClassesData = calenderData.filter(week => week.day == weekday[dayIndex]);
-        }
-        processAndUpdateNext(currentClassSettingData, todaysClassesData);
+    if (currentTimeSheetData != undefined) {
+        currentPeriod = currentTimeSheetData.period;
+        updateCurrentClass(currentPeriod);
     }
+    updateNextClass(currentPeriod);
 }
 
 
@@ -105,17 +88,35 @@ function displayTime() {
     document.getElementById('current-day').innerText = '曜日：' + str_day;
 }
 
-function processAndUpdateCurrent(currentClassSettingData, currentTimeSheetData, currentTeacherAndMaterialData) {
-    // current period title
-    const currentPeriod = currentClassSettingData[0].period;
-    const currentClassName = currentClassSettingData[0]["className"];
-    document.getElementById('current-subject-title').innerText = "現在" + currentPeriod + "限 - " + currentClassName;
+function updateCurrentClass(period) {
 
-    // variables
-    const startTimeH = currentTimeSheetData.startTimeH;
-    const startTimeM = currentTimeSheetData.startTimeM;
-    const endTimeH = currentTimeSheetData.endTimeH;
-    const endTimeM = currentTimeSheetData.endTimeM;
+    // calendar.json datas
+    let dayData = calenderData.filter(week => week.day == weekday[dayIndex]);
+    let classData = dayData.find(cls => cls.period == period);
+
+    console.log("dayData: " + JSON.stringify(dayData) + "\nclassData: " + JSON.stringify(classData));
+
+    const currentPeriod = period;
+    const className = classData.className;
+    const isMerged = classData.isMerged;
+    const classLocation = classData.classLocation;
+
+    // schedule.json datas
+    const timeSheetData = scheduleData.find(cls => cls.period == currentPeriod);
+
+    const startTimeH = timeSheetData.startTimeH;
+    const startTimeM = timeSheetData.startTimeM;
+    const endTimeH = timeSheetData.endTimeH;
+    const endTimeM = timeSheetData.endTimeM;
+
+    // class.json datas
+    let fixedClassData = classData.find(cls => cls.className == className);
+
+    const materials = fixedClassData.materials;
+    const teacher = fixedClassData.teacher;
+
+    // current period title
+    document.getElementById('current-subject-title').innerText = "現在" + currentPeriod + "限 - " + className + (isMerged ? " (合同)" : "");
 
     // current time left text
     let timeLeftH = endTimeH - currentHour;
@@ -129,12 +130,12 @@ function processAndUpdateCurrent(currentClassSettingData, currentTimeSheetData, 
 
 
     // current class information table
-    document.getElementById('current-subject').innerHTML = currentClassName;
-    document.getElementById('current-teacher').innerHTML = currentTeacherAndMaterialData.teacher;
-    document.getElementById('current-classroom').innerHTML = currentClassSettingData[0].classLocation;
-    document.getElementById('current-class-start').innerHTML = startTimeH + ":" + (startTimeM >= 10? startTimeM : ("0" + startTimeM));
-    document.getElementById('current-class-end').innerHTML = endTimeH + ":" + (endTimeM >= 10? endTimeM : ("0" + endTimeM));
-    let mats = currentTeacherAndMaterialData.materials;
+    document.getElementById('current-subject').innerHTML = className;
+    document.getElementById('current-teacher').innerHTML = teacher
+    document.getElementById('current-classroom').innerHTML = classLocation
+    document.getElementById('current-class-start').innerHTML = startTimeH + ":" + (startTimeM >= 10 ? startTimeM : ("0" + startTimeM));
+    document.getElementById('current-class-end').innerHTML = endTimeH + ":" + (endTimeM >= 10 ? endTimeM : ("0" + endTimeM));
+    let mats = materials;
     if (mats == "") {
         mats = "なし";
     }
@@ -143,39 +144,61 @@ function processAndUpdateCurrent(currentClassSettingData, currentTimeSheetData, 
 }
 
 // update display function
-function processAndUpdateNext(currentClassSettingData, todaysClassesData) {
-    // variable
-    const currentPeriod = currentClassSettingData[0].period;
+function updateNextClass(period) {
 
-    // next period title
-    const nextPeriod = (currentPeriod >= 6) ? 1 : (currentPeriod + 1);
-    // get next period data as an array to match usage of [0] elsewhere
-    const nextPeriodData = todaysClassesData.filter(clses => clses.period == nextPeriod);
-    document.getElementById('next-subject-title').innerText = "次は" + nextPeriod + "限 - " + nextPeriodData[0].className;
-
-    const nextTimeSheetData = scheduleData.find(cls => cls.period == nextPeriod);
-    // time remaining
-    let nextTimeLeftH = nextTimeSheetData.startTimeH - currentHour;
-    let nextTimeLeftM = nextTimeSheetData.startTimeM - currentMinute;
-    if (nextTimeLeftM < 0) {
-        nextTimeLeftM += 60;
-        nextTimeLeftH -= 1;
+    // format dayIndex
+    if (dayIndex > 1 || 5 <= dayIndex && period >= 6 || period <= 0) {
+        dayIndex = 1;
+    } else {
+        dayIndex++;
     }
-    nextTimeLeftM += nextTimeLeftH * 60;
-    document.getElementById('next-subject-time-left').innerText = "残り：" + (nextTimeLeftM > 9 ? nextTimeLeftM : ("0" + nextTimeLeftM)) + "分";
+    let nextPeriod = period + 1;
+    if (period > 6) {
+        nextPeriod = 1;
+    }
 
-    // data variables for next class
-    let nextTeacherAndMaterialData = classData.find(cls => cls.className == nextPeriodData[0].className);
-    let nextClassSettingData = todaysClassesData.filter(item => item.period == nextPeriod);
+    // calendar.json datas
+    let dayData = calenderData.filter(week => week.day == weekday[dayIndex]);
+    let classData = dayData.find(cls => cls.period == period);
+
+    const className = classData.className;
+    const isMerged = classData.isMerged;
+    const classLocation = classData.classLocation;
+
+    // schedule.json datas
+    const timeSheetData = scheduleData.find(cls => cls.period == nextPeriod);
+
+    const startTimeH = timeSheetData.startTimeH;
+    const startTimeM = timeSheetData.startTimeM;
+    const endTimeH = timeSheetData.endTimeH;
+    const endTimeM = timeSheetData.endTimeM;
+
+    // class.json datas
+    let fixedClassData = classData.find(cls => cls.className == className);
+
+    const materials = fixedClassData.materials;
+    const teacher = fixedClassData.teacher;
+
+    document.getElementById('next-subject-title').innerText = "次は" + currentPeriod + "限 - " + className + (isMerged ? " (合同)" : "");
+
+    // time remaining
+    let timeLeftH = startTimeH - currentHour;
+    let timeLeftM = startTimeM - currentMinute;
+    if (timeLeftM < 0) {
+        timeLeftM += 60;
+        timeLeftH -= 1;
+    }
+    timeLeftM += timeLeftH * 60;
+    document.getElementById('next-subject-time-left').innerText = "残り：" + (timeLeftM > 9 ? timeLeftM : ("0" + timeLeftM)) + "分";
 
     // next class information table
-    document.getElementById('next-subject').innerHTML = nextPeriodData[0].className;
-    document.getElementById('next-teacher').innerHTML = nextTeacherAndMaterialData.teacher;
-    document.getElementById('next-classroom').innerHTML = nextClassSettingData[0].classLocation;
+    document.getElementById('next-subject').innerHTML = className;
+    document.getElementById('next-teacher').innerHTML = teacher;
+    document.getElementById('next-classroom').innerHTML = classLocation;
     // format minutes correctly (check minutes, not hours)
-    document.getElementById('next-class-start').innerHTML = nextTimeSheetData.startTimeH + ":" + (nextTimeSheetData.startTimeM >= 10 ? nextTimeSheetData.startTimeM : ("0" + nextTimeSheetData.startTimeM));
-    document.getElementById('next-class-end').innerHTML = nextTimeSheetData.endTimeH + ":" + (nextTimeSheetData.endTimeM > 9 ? nextTimeSheetData.endTimeM : ("0" + nextTimeSheetData.endTimeM));
-    let nextMats = nextTeacherAndMaterialData.materials;
+    document.getElementById('next-class-start').innerHTML = startTimeH + ":" + (startTimeM >= 10 ? startTimeM : ("0" + startTimeM));
+    document.getElementById('next-class-end').innerHTML = endTimeH + ":" + (endTimeM > 9 ? endTimeM : ("0" + endTimeM));
+    let nextMats = materials;
     if (nextMats == "") {
         nextMats = "なし";
     }
