@@ -37,14 +37,14 @@ async function fetchData(filepath) {
 // process all json files function
 async function processDatas() {
     try {
-        personalClassesDataSet = await fetchData('json/calendar.json')
-        console.log("calendar.json loaded.")
+        personalClassesDataSet = await fetchData('json/weekly_schedule.json')
+        console.log("weekly_schedule.json loaded.")
 
-        classSyllabusDataSet = await fetchData('json/class.json')
-        console.log("class.json loaded.")
+        classSyllabusDataSet = await fetchData('json/class_details.json')
+        console.log("class_details.json loaded.")
 
-        bellScheduleDataSet = await fetchData('json/schedule.json');
-        console.log("schedule.json loaded.");
+        bellScheduleDataSet = await fetchData('json/period-times.json');
+        console.log("period-times.json loaded.");
     } catch (error) {
         console.error('An error occurred during data processing:', error);
     }
