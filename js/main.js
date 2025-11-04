@@ -68,13 +68,20 @@ function searchProcessedDataAndSetVariables() {
             timeNowMinutes < t.endTimeH * 60 + t.endTimeM
     );
 
-    let currentPeriod = currentTimeSlot ? currentTimeSlot.period : 0;
+    let currentPeriod = currentTimeSlot ? currentTimeSlot.period : null;
     updateCurrentClass(currentPeriod);
+    if (!currentPeriod) {
+        // If no current class, determine next period based on time
+        const nextTimeSlot = bellScheduleDataSet.find(
+            t => timeNowMinutes < t.endTimeH * 60 + t.endTimeM
+        );
+        currentPeriod = nextTimeSlot ? nextTimeSlot.period - 1 : 6; // set to last period if none found
+    }
     updateNextClass(currentPeriod);
     updateTodayMaterialsSummary();
     updateTomorrowMaterialsSummary();
 
-    console.log("Updae completed.");
+    console.log("Update completed.");
 }
 
 // update current class info
@@ -114,27 +121,25 @@ function updateCurrentClass(period) {
 }
 
 function updateNextClass(currentPeriod) {
+    console.log("current period inside next class: " + currentPeriod)
     let hasDayChanged = false;
     let nextPeriodDayIndex = dayIndex;
     let nextPeriod = currentPeriod + 1;
 
     // if next period is out of regular period times start from 1st period
-    if (nextPeriod >= 6) {
+    if (nextPeriod > 6) {
         nextPeriod = 1;
+        // also move to next day
         nextPeriodDayIndex++;
         hasDayChanged = true;
     }
 
-    // Skip Saturday/Sunday -> next Monday
-    if (nextPeriodDayIndex > 5) nextPeriodDayIndex = 1;
-
     // Try finding the next valid class
     let nextClass = null;
-    let nextDayName = weekday[nextPeriodDayIndex];
+    let dayName = weekday[nextPeriodDayIndex];
 
     // If no class found for that period (e.g., day off), keep advancing
     for (let i = 0; nextPeriod+i < 7 && !nextClass; i++) {
-        const dayName = weekday[nextPeriodDayIndex];
         const dayData = personalClassesDataSet.filter(w => w.day === dayName);
         nextClass = dayData.find(c => c.period === nextPeriod);
 
