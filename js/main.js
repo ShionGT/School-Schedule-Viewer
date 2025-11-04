@@ -121,7 +121,6 @@ function updateCurrentClass(period) {
 }
 
 function updateNextClass(currentPeriod) {
-    console.log("current period inside next class: " + currentPeriod)
     let hasDayChanged = false;
     let nextPeriodDayIndex = dayIndex;
     let nextPeriod = currentPeriod + 1;
