@@ -57,6 +57,8 @@ function displayTime() {
 
 // find current and next classes
 function searchProcessedDataAndSetVariables() {
+    console.log("Updating class information...");
+
     updateTime();
     displayTime();
 
@@ -69,6 +71,10 @@ function searchProcessedDataAndSetVariables() {
     let currentPeriod = currentTimeSlot ? currentTimeSlot.period : 0;
     updateCurrentClass(currentPeriod);
     updateNextClass(currentPeriod);
+    updateTodayMaterialsSummary();
+    updateTomorrowMaterialsSummary();
+
+    console.log("Updae completed.");
 }
 
 // update current class info
@@ -127,7 +133,7 @@ function updateNextClass(currentPeriod) {
     let nextDayName = weekday[nextPeriodDayIndex];
 
     // If no class found for that period (e.g., day off), keep advancing
-    for (let i = 0; i < 7 && !nextClass; i++) {
+    for (let i = 0; nextPeriod+i < 7 && !nextClass; i++) {
         const dayName = weekday[nextPeriodDayIndex];
         const dayData = personalClassesDataSet.filter(w => w.day === dayName);
         nextClass = dayData.find(c => c.period === nextPeriod);
@@ -289,7 +295,5 @@ function updateTomorrowMaterialsSummary() {
 // initialize everything
 processDatas().then(() => {
     searchProcessedDataAndSetVariables();
-    updateTodayMaterialsSummary();
-    updateTomorrowMaterialsSummary();
     setInterval(searchProcessedDataAndSetVariables, 1000 * 60); // update every minute
 });
