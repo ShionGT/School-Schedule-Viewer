@@ -63,7 +63,7 @@ function searchProcessedDataAndSetVariables() {
     const timeNowMinutes = currentHour * 60 + currentMinute;
     const currentTimeSlot = bellScheduleDataSet.find(
         t => t.startTimeH * 60 + t.startTimeM <= timeNowMinutes &&
-             timeNowMinutes < t.endTimeH * 60 + t.endTimeM
+            timeNowMinutes < t.endTimeH * 60 + t.endTimeM
     );
 
     let currentPeriod = currentTimeSlot ? currentTimeSlot.period : 0;
@@ -81,11 +81,12 @@ function updateCurrentClass(period) {
         return;
     }
 
+    // extract class info
     const { className, merged, classLocation } = classData;
     const timeData = bellScheduleDataSet.find(t => t.period === period);
     const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
     const materials = fixedClass.materials?.length ? fixedClass.materials.join('、') : "なし";
-    const teacher = fixedClass.teacher || "未定";
+    const teacher = fixedClass.teacher || "なし";
 
     // remaining time
     let minutesLeft = (timeData.endTimeH * 60 + timeData.endTimeM) - (currentHour * 60 + currentMinute);
@@ -107,25 +108,27 @@ function updateCurrentClass(period) {
 }
 
 function updateNextClass(currentPeriod) {
-    let nextDayIndex = dayIndex;
+    let hasDayChanged = false;
+    let nextPeriodDayIndex = dayIndex;
     let nextPeriod = currentPeriod + 1;
 
-    // If no class currently (e.g. morning or evening), start from 1st period
-    if (currentPeriod === 0 || currentPeriod >= 6) {
+    // if next period is out of regular period times start from 1st period
+    if (nextPeriod >= 6) {
         nextPeriod = 1;
-        nextDayIndex++;
+        nextPeriodDayIndex++;
+        hasDayChanged = true;
     }
 
     // Skip Saturday/Sunday -> next Monday
-    if (nextDayIndex > 5) nextDayIndex = 1;
+    if (nextPeriodDayIndex > 5) nextPeriodDayIndex = 1;
 
     // Try finding the next valid class
     let nextClass = null;
-    let nextDayName = weekday[nextDayIndex];
+    let nextDayName = weekday[nextPeriodDayIndex];
 
     // If no class found for that period (e.g., day off), keep advancing
     for (let i = 0; i < 7 && !nextClass; i++) {
-        const dayName = weekday[nextDayIndex];
+        const dayName = weekday[nextPeriodDayIndex];
         const dayData = personalClassesDataSet.filter(w => w.day === dayName);
         nextClass = dayData.find(c => c.period === nextPeriod);
 
@@ -134,8 +137,10 @@ function updateNextClass(currentPeriod) {
             nextPeriod++;
             if (nextPeriod > 6) {
                 nextPeriod = 1;
-                nextDayIndex++;
-                if (nextDayIndex > 5) nextDayIndex = 1;
+                nextPeriodDayIndex++;
+                hasDayChanged = true;
+                // Skip Saturday/Sunday -> next Monday
+                if (nextPeriodDayIndex > 5 || nextPeriodDayIndex === 0) nextPeriodDayIndex = 1;
             }
         }
     }
@@ -146,25 +151,30 @@ function updateNextClass(currentPeriod) {
         return;
     }
 
+    // extract class info
     const { className, merged, classLocation } = nextClass;
     const timeData = bellScheduleDataSet.find(t => t.period === nextPeriod);
     const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
     const materials = fixedClass.materials?.length ? fixedClass.materials.join('、') : "なし";
-    const teacher = fixedClass.teacher || "未定";
-    const nextDayNameDisplay = weekday[nextDayIndex];
+    const teacher = fixedClass.teacher || "なし";
+    const nextDayNameDisplay = weekday[nextPeriodDayIndex];
 
     // calculate time difference safely
     let nextStartMinutes = timeData.startTimeH * 60 + timeData.startTimeM;
     let nowMinutes = currentHour * 60 + currentMinute;
     let minutesUntilNext = nextStartMinutes - nowMinutes;
 
-    if (minutesUntilNext <= 0) minutesUntilNext += 24 * 60; // move to next day
-
     // --- UI update ---
-    document.getElementById('next-subject-title').innerText =
-        `次は${nextDayNameDisplay} ${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
-    document.getElementById('next-subject-time-left').innerText =
-        `残り：${minutesUntilNext}分`;
+    if (hasDayChanged) {
+        document.getElementById('next-subject-title').innerText =
+            `次は${nextDayNameDisplay} - ${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
+        document.getElementById('next-subject-time-left').innerText = "";
+    } else {
+        document.getElementById('next-subject-title').innerText =
+            `次は${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
+        document.getElementById('next-subject-time-left').innerText =
+            `残り：${minutesUntilNext}分`;
+    }
 
     document.getElementById('next-subject').innerText = className;
     document.getElementById('next-teacher').innerText = teacher;
@@ -176,8 +186,52 @@ function updateNextClass(currentPeriod) {
     document.getElementById('next-materials').innerText = materials;
 }
 
+function updateTodayMaterialsSummary() {
+    // --- Determine today's data ---
+    const todayData = personalClassesDataSet.filter(week => week.day === str_day);
+
+    let allMaterials = [];
+
+    // collect materials from all classes
+    todayData.forEach(cls => {
+        const syllabus = classSyllabusDataSet.find(s => s.className === cls.className);
+        if (!syllabus) return;
+
+        const mats = syllabus.materials;
+
+        // Handle both array and string cases safely
+        if (Array.isArray(mats)) {
+            allMaterials.push(...mats.filter(m => m && m.trim() !== ""));
+        } else if (typeof mats === "string" && mats.trim() !== "") {
+            // Split string into multiple materials if separated
+            allMaterials.push(
+                ...mats.split(/[、・,]/).map(m => m.trim()).filter(m => m)
+            );
+        }
+
+        // Remove any duplicates
+        const uniqueMaterials = [...new Set(allMaterials)];
+
+        // update display
+        const listEl = document.getElementById("materials-summary-list");
+
+        listEl.innerHTML = "";
+
+        if (uniqueMaterials.length === 0) {
+            listEl.innerHTML = "<li>特にありません。</li>";
+        } else {
+            uniqueMaterials.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                listEl.appendChild(li);
+            });
+        }
+    });
+}
+
+
 function updateTomorrowMaterialsSummary() {
-    // --- Determine which day to show ---
+    // target new dayIndex to tomorrow
     let tomorrowIndex = dayIndex + 1;
 
     // If today is Friday (5), Saturday (6), or Sunday (0) → show Monday (1)
@@ -187,12 +241,12 @@ function updateTomorrowMaterialsSummary() {
         tomorrowIndex = 1; // wrap around from Sunday to Monday
     }
 
-    const tomorrowName = weekday[tomorrowIndex];
-    const dayData = personalClassesDataSet.filter(week => week.day === tomorrowName);
+    const upcomingDay = weekday[tomorrowIndex];
+    const dayData = personalClassesDataSet.filter(week => week.day === upcomingDay);
 
     let allMaterials = [];
 
-    // --- Collect materials from all classes ---
+    // Collect materials from all classes
     dayData.forEach(cls => {
         const syllabus = classSyllabusDataSet.find(s => s.className === cls.className);
         if (!syllabus) return;
@@ -210,14 +264,13 @@ function updateTomorrowMaterialsSummary() {
         }
     });
 
-    // --- Remove duplicates ---
+    // Remove any duplicates
     const uniqueMaterials = [...new Set(allMaterials)];
 
-    // --- Update display ---
-    const titleEl = document.getElementById("materials-summary-title");
-    const listEl = document.getElementById("materials-summary-list");
+    // Update display
+    document.getElementById("tomorrows-materials-summary-title").innerText = `${upcomingDay}の持ち物一覧`;
+    const listEl = document.getElementById("tomorrows-materials-summary-list");
 
-    titleEl.innerText = `${tomorrowName}の持ち物一覧`;
     listEl.innerHTML = "";
 
     if (uniqueMaterials.length === 0) {
@@ -236,6 +289,7 @@ function updateTomorrowMaterialsSummary() {
 // initialize everything
 processDatas().then(() => {
     searchProcessedDataAndSetVariables();
+    updateTodayMaterialsSummary();
     updateTomorrowMaterialsSummary();
     setInterval(searchProcessedDataAndSetVariables, 1000 * 60); // update every minute
 });

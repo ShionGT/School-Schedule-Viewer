@@ -26,7 +26,13 @@ th {
     padding: 10px;
 }
 
+li {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
 section{
     width: 55%;
     margin: 0 auto;
+    margin-bottom: 5%;
 }
