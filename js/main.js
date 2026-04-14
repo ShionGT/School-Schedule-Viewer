@@ -4,18 +4,21 @@ let str_day, str_time;
 let currentHour, currentMinute;
 
 const weekday = [
-    '日曜日',
-    '月曜日',
-    '火曜日',
-    '水曜日',
-    '木曜日',
-    '金曜日',
-    '土曜日'
+     '日曜日',
+     '月曜日',
+     '火曜日',
+     '水曜日',
+     '木曜日',
+     '金曜日',
+     '土曜日'
 ];
 
 let personalClassesDataSet, classSyllabusDataSet, bellScheduleDataSet;
 
-// generic fetch function
+// Pre-compile regex for performance
+const MATERIAL_SPLIT_REGEX = /[、・,]/;
+
+// generic fetch function with error handling
 async function fetchData(filepath) {
     try {
         const response = await fetch(filepath);
@@ -46,13 +49,16 @@ function updateTime() {
     str_day = weekday[dayIndex];
     currentHour = date.getHours();
     currentMinute = date.getMinutes();
-    str_time = `${currentHour}:${currentMinute < 10 ? '0' + currentMinute : currentMinute}`;
 }
 
 // display current day/time
 function displayTime() {
-    document.getElementById('current-time').innerText = '時刻：' + str_time;
-    document.getElementById('current-day').innerText = '曜日：' + str_day;
+    const timeElement = document.getElementById('current-time');
+    const dayElement = document.getElementById('current-day');
+    
+    str_time = `${currentHour}:${currentMinute < 10 ? '0' + currentMinute : currentMinute}`;
+    timeElement.innerText = str_time;
+    dayElement.innerText = str_day;
 }
 
 // find current and next classes
@@ -91,6 +97,13 @@ function updateCurrentClass(period) {
 
     if (!classData) {
         document.getElementById('current-subject-title').innerText = "現在授業なし";
+        document.getElementById('current-subject').innerText = "-";
+        document.getElementById('current-teacher').innerText = "-";
+        document.getElementById('current-classroom').innerText = "-";
+        document.getElementById('current-class-start').innerText = "-";
+        document.getElementById('current-class-end').innerText = "-";
+        document.getElementById('current-materials').innerHTML = "";
+        document.getElementById('current-subject-time-left').style.display = 'none';
         return;
     }
 
@@ -98,8 +111,8 @@ function updateCurrentClass(period) {
     const { className, merged, classLocation } = classData;
     const timeData = bellScheduleDataSet.find(t => t.period === period);
     const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
-    const materials = fixedClass.materials?.length ? fixedClass.materials.join('、') : "なし";
-    const teacher = fixedClass.teacher || "なし";
+    const materials = fixedClass.materials?.length ? fixedClass.materials : [];
+    const teacher = fixedClass.teacher || "-";
 
     // remaining time
     let minutesLeft = (timeData.endTimeH * 60 + timeData.endTimeM) - (currentHour * 60 + currentMinute);
@@ -107,6 +120,7 @@ function updateCurrentClass(period) {
 
     document.getElementById('current-subject-title').innerText =
         `現在${period}限 - ${className}${merged ? " (合同)" : ""}`;
+    document.getElementById('current-subject-time-left').style.display = 'inline-block';
     document.getElementById('current-subject-time-left').innerText =
         `残り：${minutesLeft}分`;
 
@@ -114,10 +128,15 @@ function updateCurrentClass(period) {
     document.getElementById('current-teacher').innerText = teacher;
     document.getElementById('current-classroom').innerText = classLocation;
     document.getElementById('current-class-start').innerText =
-        `${timeData.startTimeH}:${timeData.startTimeM.toString().padStart(2, '0')}`;
+        `${timeData.startTimeH}:${String(timeData.startTimeM).padStart(2, '0')}`;
     document.getElementById('current-class-end').innerText =
-        `${timeData.endTimeH}:${timeData.endTimeM.toString().padStart(2, '0')}`;
-    document.getElementById('current-materials').innerText = materials;
+        `${timeData.endTimeH}:${String(timeData.endTimeM).padStart(2, '0')}`;
+    
+    // Render materials as list
+    const materialsEl = document.getElementById('current-materials');
+    materialsEl.innerHTML = materials.length > 0 
+        ? materials.map(m => `<li>${m}</li>`).join('') 
+        : '<li>なし</li>';
 }
 
 function updateNextClass(currentPeriod) {
@@ -138,7 +157,7 @@ function updateNextClass(currentPeriod) {
     let dayName = weekday[nextPeriodDayIndex];
 
     // If no class found for that period (e.g., day off), keep advancing
-    for (let i = 0; nextPeriod+i < 7 && !nextClass; i++) {
+    for (let i = 0; nextPeriod + i < 7 && !nextClass; i++) {
         const dayData = personalClassesDataSet.filter(w => w.day === dayName);
         nextClass = dayData.find(c => c.period === nextPeriod);
 
@@ -158,6 +177,13 @@ function updateNextClass(currentPeriod) {
     // If still not found, show fallback
     if (!nextClass) {
         document.getElementById('next-subject-title').innerText = "次の授業はありません";
+        document.getElementById('next-subject').innerText = "-";
+        document.getElementById('next-teacher').innerText = "-";
+        document.getElementById('next-classroom').innerText = "-";
+        document.getElementById('next-class-start').innerText = "-";
+        document.getElementById('next-class-end').innerText = "-";
+        document.getElementById('next-materials').innerHTML = "";
+        document.getElementById('next-subject-time-left').style.display = 'none';
         return;
     }
 
@@ -165,8 +191,8 @@ function updateNextClass(currentPeriod) {
     const { className, merged, classLocation } = nextClass;
     const timeData = bellScheduleDataSet.find(t => t.period === nextPeriod);
     const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
-    const materials = fixedClass.materials?.length ? fixedClass.materials.join('、') : "なし";
-    const teacher = fixedClass.teacher || "なし";
+    const materials = fixedClass.materials?.length ? fixedClass.materials : [];
+    const teacher = fixedClass.teacher || "-";
     const nextDayNameDisplay = weekday[nextPeriodDayIndex];
 
     // calculate time difference safely
@@ -178,10 +204,11 @@ function updateNextClass(currentPeriod) {
     if (hasDayChanged) {
         document.getElementById('next-subject-title').innerText =
             `次は${nextDayNameDisplay} - ${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
-        document.getElementById('next-subject-time-left').innerText = "";
+        document.getElementById('next-subject-time-left').style.display = 'none';
     } else {
         document.getElementById('next-subject-title').innerText =
             `次は${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
+        document.getElementById('next-subject-time-left').style.display = 'inline-block';
         document.getElementById('next-subject-time-left').innerText =
             `残り：${minutesUntilNext}分`;
     }
@@ -193,7 +220,12 @@ function updateNextClass(currentPeriod) {
         `${timeData.startTimeH}:${String(timeData.startTimeM).padStart(2, '0')}`;
     document.getElementById('next-class-end').innerText =
         `${timeData.endTimeH}:${String(timeData.endTimeM).padStart(2, '0')}`;
-    document.getElementById('next-materials').innerText = materials;
+    
+    // Render materials as list
+    const materialsEl = document.getElementById('next-materials');
+    materialsEl.innerHTML = materials.length > 0 
+        ? materials.map(m => `<li>${m}</li>`).join('') 
+        : '<li>なし</li>';
 }
 
 function updateTodayMaterialsSummary() {
@@ -209,34 +241,26 @@ function updateTodayMaterialsSummary() {
 
         const mats = syllabus.materials;
 
-        // Handle both array and string cases safely
         if (Array.isArray(mats)) {
             allMaterials.push(...mats.filter(m => m && m.trim() !== ""));
         } else if (typeof mats === "string" && mats.trim() !== "") {
-            // Split string into multiple materials if separated
             allMaterials.push(
-                ...mats.split(/[、・,]/).map(m => m.trim()).filter(m => m)
+                ...mats.split(MATERIAL_SPLIT_REGEX).map(m => m.trim()).filter(m => m)
             );
         }
-
-        // Remove any duplicates
-        const uniqueMaterials = [...new Set(allMaterials)];
-
-        // update display
-        const listEl = document.getElementById("materials-summary-list");
-
-        listEl.innerHTML = "";
-
-        if (uniqueMaterials.length === 0) {
-            listEl.innerHTML = "<li>特にありません。</li>";
-        } else {
-            uniqueMaterials.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = item;
-                listEl.appendChild(li);
-            });
-        }
     });
+
+    // Remove any duplicates
+    const uniqueMaterials = [...new Set(allMaterials)];
+
+    // update display
+    const listEl = document.getElementById("materials-summary-list");
+
+    if (uniqueMaterials.length === 0) {
+        listEl.innerHTML = "<li>特にありません。</li>";
+    } else {
+        listEl.innerHTML = uniqueMaterials.map(item => `<li>${item}</li>`).join('');
+    }
 }
 
 
@@ -263,13 +287,11 @@ function updateTomorrowMaterialsSummary() {
 
         const mats = syllabus.materials;
 
-        // Handle both array and string cases safely
         if (Array.isArray(mats)) {
             allMaterials.push(...mats.filter(m => m && m.trim() !== ""));
         } else if (typeof mats === "string" && mats.trim() !== "") {
-            // Split string into multiple materials if separated
             allMaterials.push(
-                ...mats.split(/[、・,]/).map(m => m.trim()).filter(m => m)
+                ...mats.split(MATERIAL_SPLIT_REGEX).map(m => m.trim()).filter(m => m)
             );
         }
     });
@@ -281,16 +303,10 @@ function updateTomorrowMaterialsSummary() {
     document.getElementById("tomorrows-materials-summary-title").innerText = `${upcomingDay}の持ち物一覧`;
     const listEl = document.getElementById("tomorrows-materials-summary-list");
 
-    listEl.innerHTML = "";
-
     if (uniqueMaterials.length === 0) {
         listEl.innerHTML = "<li>特にありません。</li>";
     } else {
-        uniqueMaterials.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = item;
-            listEl.appendChild(li);
-        });
+        listEl.innerHTML = uniqueMaterials.map(item => `<li>${item}</li>`).join('');
     }
 }
 

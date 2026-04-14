@@ -3,96 +3,107 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="School Schedule Viewer - View your class schedule and materials">
     <title>学校の時間割 on GitHub Pages</title>
+    <link rel="stylesheet" type="text/css" href="css/visual.css">
 </head>
 
 <body>
-    <!-- TIME GOES HERE -->
-    <p id="current-time">
+     <!-- Header Section -->
+     <header id="current-time">
         時刻
-    </p>
-    <p id="current-day">
+     </header>
+     <header id="current-day">
         曜日
-    </p>
+     </header>
 
-    <!-- CURRENT SUBJECT -->
-    <section>
-        <h2 id="current-subject-title">
-            今の科目
-        </h2>
-        <label id="current-subject-time-left" for="current-class-table">
+     <!-- CURRENT SUBJECT -->
+     <section>
+         <h2 id="current-subject-title">
+            現在の授業
+         </h2>
+         <label id="current-subject-time-left" for="current-class-table">
             残り時間
-        </label>
+         </label>
 
-        <table id="current-class-table" border="1">
-            <tr>
-                <th>科目</th>
-                <th>教官</th>
-                <th>教室</th>
-                <th>開始時間</th>
-                <th>終了時間</th>
-                <th>持ち物</th>
-            </tr>
-            <tr>
-                <td id="current-subject">科目</td>
-                <td id="current-teacher">先生</td>
-                <td id="current-classroom">教室</td>
-                <td id="current-class-start">時間</td>
-                <td id="current-class-end">時間</td>
-                <td id="current-materials" class="materials">リスト</td>
-            </tr>
-        </table>
-    </section>
+         <table id="current-class-table" border="1">
+             <thead>
+                 <tr>
+                     <th>科目</th>
+                     <th>教官</th>
+                     <th>教室</th>
+                     <th>開始</th>
+                     <th>終了</th>
+                     <th>持ち物</th>
+                 </tr>
+             </thead>
+             <tbody>
+                 <tr>
+                     <td id="current-subject">科目</td>
+                     <td id="current-teacher">先生</td>
+                     <td id="current-classroom">教室</td>
+                     <td id="current-class-start">時間</td>
+                     <td id="current-class-end">時間</td>
+                     <td id="current-materials" class="materials">リスト</td>
+                 </tr>
+             </tbody>
+         </table>
+     </section>
 
-    <!-- UPCOMING SUBJECT -->
-    <section>
-        <h2 id="next-subject-title">
-            次の科目
-        </h2>
-        <label id="next-subject-time-left" for="next-class-table">
+     <!-- UPCOMING SUBJECT -->
+     <section>
+         <h2 id="next-subject-title">
+            次の授業
+         </h2>
+         <label id="next-subject-time-left" for="next-class-table">
             残り時間
-        </label>
-        <table id="next-class-table" border="1">
-            <tr>
-                <th>科目</th>
-                <th>教官</th>
-                <th>教室</th>
-                <th>開始時間</th>
-                <th>終了時間</th>
-                <th>持ち物</th>
-            </tr>
-            <tr>
-                <td id="next-subject">科目</td>
-                <td id="next-teacher">先生</td>
-                <td id="next-classroom">教室</td>
-                <td id="next-class-start">時間</td>
-                <td id="next-class-end">時間</td>
-                <td id="next-materials" class="materials">リスト</td>
-            </tr>
-        </table>
-    </section>
+         </label>
+         <table id="next-class-table" border="1">
+             <thead>
+                 <tr>
+                     <th>科目</th>
+                     <th>教官</th>
+                     <th>教室</th>
+                     <th>開始</th>
+                     <th>終了</th>
+                     <th>持ち物</th>
+                 </tr>
+             </thead>
+             <tbody>
+                 <tr>
+                     <td id="next-subject">科目</td>
+                     <td id="next-teacher">先生</td>
+                     <td id="next-classroom">教室</td>
+                     <td id="next-class-start">時間</td>
+                     <td id="next-class-end">時間</td>
+                     <td id="next-materials" class="materials">リスト</td>
+                 </tr>
+             </tbody>
+         </table>
+     </section>
 
-    <!-- today's materials summary -->
-    <section>
-        <h2 id="materials-summary-title">
+     <!-- today's materials summary -->
+     <section>
+         <h2 id="materials-summary-title">
             今日の持ち物一覧
-        </h2>
-        <ul id="materials-summary-list">
-            <!-- Filled by JS -->
-        </ul>
-    </section>
+         </h2>
+         <ul id="materials-summary-list">
+             <!-- Filled by JS -->
+         </ul>
+     </section>
 
-    <!-- tomorrow's materials summary -->
-    <section>
-        <h2 id="tomorrows-materials-summary-title">
+     <!-- tomorrow's materials summary -->
+     <section>
+         <h2 id="tomorrows-materials-summary-title">
             明日の持ち物一覧
-        </h2>
-        <ul id="tomorrows-materials-summary-list">
-            <!-- Filled by JS -->
-        </ul>
-    </section>
-    <script src="js/main.js"></script>
-    <link rel="stylesheet" type="text/css" href="css/visual.css">
+         </h2>
+         <ul id="tomorrows-materials-summary-list">
+             <!-- Filled by JS -->
+         </ul>
+     </section>
+
+     <script src="js/main.js"></script>
 </body>
 
 </html>
