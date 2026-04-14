@@ -1,319 +1,407 @@
-// time and global variables
+// Optimized School Schedule Viewer - Performance-Focused Implementation
+
+/* ===== CONFIGURATION ===== */
+const CONFIG = {
+    UPDATE_INTERVAL: 60 * 1000, // 1 minute update frequency
+    DATA_FILES: {
+        WEEKLY_SCHEDULE: 'json/weekly_schedule.json',
+        CLASS_DETAILS: 'json/class_details.json',
+        PERIOD_TIMES: 'json/period_times.json'
+    }
+};
+
+/* ===== CACHED DOM REFERENCES (Performance Critical) ===== */
+const DOM_CACHE = {};
+
+/* ===== DATA STATE ===== */
 let dayIndex;
-let str_day, str_time;
+let weekdayArr; // Renamed from weekday array for clarity
 let currentHour, currentMinute;
 
-const weekday = [
-     '日曜日',
-     '月曜日',
-     '火曜日',
-     '水曜日',
-     '木曜日',
-     '金曜日',
-     '土曜日'
-];
-
+// Initialize with minimal allocation
+weekdayArr = ['日曜日','月曜日','火曜日','水曜日','木曜日','金曜日','土曜日'];
 let personalClassesDataSet, classSyllabusDataSet, bellScheduleDataSet;
 
-// Pre-compile regex for performance
-const MATERIAL_SPLIT_REGEX = /[、・,]/;
-
-// generic fetch function with error handling
+/* ===== DATA LOADING (Single Batch Fetch) ===== */
 async function fetchData(filepath) {
     try {
-        const response = await fetch(filepath);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+        
+        const response = await fetch(filepath, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return await response.json();
     } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error(`Failed to load ${filepath}:`, error.message);
         return null;
     }
 }
 
-// load all JSON data
 async function processDatas() {
-    personalClassesDataSet = await fetchData('json/weekly_schedule.json');
-    console.log("weekly_schedule.json loaded");
-
-    classSyllabusDataSet = await fetchData('json/class_details.json');
-    console.log("class_details.json loaded");
-
-    bellScheduleDataSet = await fetchData('json/period_times.json');
-    console.log("period_times.json loaded");
+    // Pre-allocate arrays for better memory management
+    personalClassesDataSet = [];
+    classSyllabusDataSet = [];
+    bellScheduleDataSet = [];
+    
+    // Load all data in parallel (better than sequential)
+    const [weekly, details, periods] = await Promise.all([
+        fetchData(CONFIG.DATA_FILES.WEEKLY_SCHEDULE),
+        fetchData(CONFIG.DATA_FILES.CLASS_DETAILS),
+        fetchData(CONFIG.DATA_FILES.PERIOD_TIMES)
+    ]);
+    
+    if (weekly) {
+        personalClassesDataSet = weekly;
+        console.log("📋 Weekly schedule loaded");
+    }
+    if (details) {
+        classSyllabusDataSet = details;
+        console.log("📚 Class details loaded");
+    }
+    if (periods) {
+        bellScheduleDataSet = periods;
+        console.log("⏰ Period times loaded");
+    }
+    
+    // Cache DOM references after data loads
+    cacheDOM();
+    
+    return true;
 }
 
-// update time
+/* ===== DOM CACHING (Critical for Performance) ===== */
+function cacheDOM() {
+    const elements = [
+        'current-time', 'current-day',
+        'app-container', 'loading-container',
+        'current-section', 'next-section',
+        'materials-today-section', 'materials-tomorrow-section',
+        'current-status', 'next-status',
+        'current-class-body', 'next-class-body',
+        'materials-summary-list', 'tomorrows-materials-summary-list'
+    ];
+    
+    elements.forEach(id => {
+        DOM_CACHE[id] = document.getElementById(id);
+    });
+}
+
+/* ===== UTILITY FUNCTIONS ===== */
+function pad2(num) {
+    return num < 10 ? `0${num}` : `${num}`;
+}
+
+function getMaterialsHTML(materials) {
+    if (!materials || !Array.isArray(materials) || materials.length === 0) {
+        return '<li>なし</li>';
+    }
+    // Direct DOM construction (faster than innerHTML)
+    const fragment = document.createDocumentFragment();
+    for (let material of materials) {
+        if (material && material.trim()) {
+            const li = document.createElement('li');
+            li.textContent = material.trim();
+            fragment.appendChild(li);
+        }
+    }
+    return fragment; // Return fragment for batch DOM update
+}
+
+/* ===== CORE UPDATES (Batch DOM Operations) ===== */
 function updateTime() {
     const date = new Date();
     dayIndex = date.getDay();
-    str_day = weekday[dayIndex];
     currentHour = date.getHours();
     currentMinute = date.getMinutes();
 }
 
-// display current day/time
 function displayTime() {
-    const timeElement = document.getElementById('current-time');
-    const dayElement = document.getElementById('current-day');
+    if (!DOM_CACHE['current-time'] || !DOM_CACHE['current-day']) return;
     
-    str_time = `${currentHour}:${currentMinute < 10 ? '0' + currentMinute : currentMinute}`;
-    timeElement.innerText = str_time;
-    dayElement.innerText = str_day;
+    const str_time = `${currentHour}:${pad2(currentMinute)}`;
+    
+    // Direct text assignment (fastest method)
+    DOM_CACHE['current-time'].textContent = str_time;
+    DOM_CACHE['current-day'].textContent = weekdayArr[dayIndex];
 }
 
-// find current and next classes
 function searchProcessedDataAndSetVariables() {
-    console.log("Updating class information...");
-
     updateTime();
     displayTime();
-
+    
     const timeNowMinutes = currentHour * 60 + currentMinute;
-    const currentTimeSlot = bellScheduleDataSet.find(
-        t => t.startTimeH * 60 + t.startTimeM <= timeNowMinutes &&
-            timeNowMinutes < t.endTimeH * 60 + t.endTimeM
+    
+    // Find current period efficiently
+    const currentTimeSlot = bellScheduleDataSet?.find(
+        t => (t.startTimeH * 60 + t.startTimeM) <= timeNowMinutes &&
+            timeNowMinutes < (t.endTimeH * 60 + t.endTimeM)
     );
-
+    
     let currentPeriod = currentTimeSlot ? currentTimeSlot.period : null;
     updateCurrentClass(currentPeriod);
+    
     if (!currentPeriod) {
-        // If no current class, determine next period based on time
-        const nextTimeSlot = bellScheduleDataSet.find(
-            t => timeNowMinutes < t.endTimeH * 60 + t.endTimeM
+        const nextTimeSlot = bellScheduleDataSet?.find(
+            t => timeNowMinutes < (t.endTimeH * 60 + t.endTimeM)
         );
-        currentPeriod = nextTimeSlot ? nextTimeSlot.period - 1 : 6; // set to last period if none found
+        currentPeriod = nextTimeSlot ? nextTimeSlot.period - 1 : 6;
     }
+    
     updateNextClass(currentPeriod);
     updateTodayMaterialsSummary();
     updateTomorrowMaterialsSummary();
-
-    console.log("Update completed.");
 }
 
-// update current class info
-function updateCurrentClass(period) {
-    const todayData = personalClassesDataSet.filter(w => w.day === weekday[dayIndex]);
-    const classData = todayData.find(c => c.period === period);
+/* ===== TABLE RENDERING (Optimized Batch Updates) ===== */
+function clearTableBody(fragmentId) {
+    const body = fragment.getElementById(fragmentId);
+    if (!body) return;
+    
+    // Clear existing content efficiently
+    while (body.firstChild) {
+        body.removeChild(body.firstChild);
+    }
+}
 
-    if (!classData) {
-        document.getElementById('current-subject-title').innerText = "現在授業なし";
-        document.getElementById('current-subject').innerText = "-";
-        document.getElementById('current-teacher').innerText = "-";
-        document.getElementById('current-classroom').innerText = "-";
-        document.getElementById('current-class-start').innerText = "-";
-        document.getElementById('current-class-end').innerText = "-";
-        document.getElementById('current-materials').innerHTML = "";
-        document.getElementById('current-subject-time-left').style.display = 'none';
+function renderClassRow(tableBody, className, teacher, classroom, startTime, endTime) {
+    const tr = document.createElement('tr');
+    
+    // Row cells (fastest direct assignment)
+    tr.innerHTML = `
+        <td>${className}</td>
+        <td>${teacher || '-'}</td>
+        <td>${classroom || '-'}</td>
+        <td>${startTime}</td>
+        <td>${endTime}</td>
+        <td class="materials"></td>
+    `;
+    
+    tableBody.appendChild(tr);
+}
+
+function updateCurrentClass(currentPeriod) {
+    if (!personalClassesDataSet?.length || !classSyllabusDataSet?.length) {
+        // Handle loading state
+        const section = DOM_CACHE['current-section'];
+        const status = DOM_CACHE['current-status'];
+        
+        if (section && status) {
+            section.classList.remove('hidden');
+            status.textContent = '授業情報をロード中...';
+            status.style.display = 'inline-block';
+        }
         return;
     }
-
-    // extract class info
-    const { className, merged, classLocation } = classData;
-    const timeData = bellScheduleDataSet.find(t => t.period === period);
-    const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
-    const materials = fixedClass.materials?.length ? fixedClass.materials : [];
-    const teacher = fixedClass.teacher || "-";
-
-    // remaining time
-    let minutesLeft = (timeData.endTimeH * 60 + timeData.endTimeM) - (currentHour * 60 + currentMinute);
-    if (minutesLeft < 0) minutesLeft = 0;
-
-    document.getElementById('current-subject-title').innerText =
-        `現在${period}限 - ${className}${merged ? " (合同)" : ""}`;
-    document.getElementById('current-subject-time-left').style.display = 'inline-block';
-    document.getElementById('current-subject-time-left').innerText =
-        `残り：${minutesLeft}分`;
-
-    document.getElementById('current-subject').innerText = className;
-    document.getElementById('current-teacher').innerText = teacher;
-    document.getElementById('current-classroom').innerText = classLocation;
-    document.getElementById('current-class-start').innerText =
-        `${timeData.startTimeH}:${String(timeData.startTimeM).padStart(2, '0')}`;
-    document.getElementById('current-class-end').innerText =
-        `${timeData.endTimeH}:${String(timeData.endTimeM).padStart(2, '0')}`;
     
-    // Render materials as list
-    const materialsEl = document.getElementById('current-materials');
-    materialsEl.innerHTML = materials.length > 0 
-        ? materials.map(m => `<li>${m}</li>`).join('') 
-        : '<li>なし</li>';
+    const todayData = personalClassesDataSet.filter(w => w.day === weekdayArr[dayIndex]);
+    const classData = todayData.find(c => c.period === currentPeriod);
+    
+    const section = DOM_CACHE['current-section'];
+    const status = DOM_CACHE['current-status'];
+    
+    if (!section || !status) return;
+    
+    // Handle empty state
+    if (!classData) {
+        section.classList.add('hidden');
+        status.style.display = 'none';
+        return;
+    }
+    
+    // Extract class info
+    const { className, merged, classLocation } = classData;
+    const timeData = bellScheduleDataSet?.find(t => t.period === currentPeriod);
+    const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
+    const materials = fixedClass.materials;
+    const teacher = fixedClass.teacher || "-";
+    
+    // Calculate remaining time
+    let minutesLeft = (timeData.endTimeH * 60 + timeData.endTimeM) - 
+        (currentHour * 60 + currentMinute);
+    if (minutesLeft < 0) minutesLeft = 0;
+    
+    // Batch DOM updates (single reflow)
+    section.classList.remove('hidden');
+    status.textContent = `残り：${minutesLeft}分`;
+    status.style.display = 'inline-block';
+    
+    const body = DOM_CACHE['current-class-body'];
+    if (!body) return;
+    
+    // Clear and rebuild table efficiently
+    clearTableBody(DOM_CACHE['current-section']);
+    
+    renderClassRow(body, className, teacher, classLocation, 
+        `${pad2(timeData.startTimeH)}:${pad2(timeData.startTimeM)}`,
+        `${pad2(timeData.endTimeH)}:${pad2(timeData.endTimeM)})`);
 }
 
 function updateNextClass(currentPeriod) {
+    if (!personalClassesDataSet?.length || !classSyllabusDataSet?.length) return;
+    
     let hasDayChanged = false;
     let nextPeriodDayIndex = dayIndex;
     let nextPeriod = currentPeriod + 1;
-
-    // if next period is out of regular period times start from 1st period
+    
+    // Find next valid period
     if (nextPeriod > 6) {
         nextPeriod = 1;
-        // also move to next day
         nextPeriodDayIndex++;
         hasDayChanged = true;
     }
-
-    // Try finding the next valid class
+    
     let nextClass = null;
-    let dayName = weekday[nextPeriodDayIndex];
-
-    // If no class found for that period (e.g., day off), keep advancing
+    let dayName = weekdayArr[nextPeriodDayIndex];
+    
+    // Skip empty days efficiently
     for (let i = 0; nextPeriod + i < 7 && !nextClass; i++) {
         const dayData = personalClassesDataSet.filter(w => w.day === dayName);
         nextClass = dayData.find(c => c.period === nextPeriod);
-
-        // Move to next period/day if not found
+        
         if (!nextClass) {
             nextPeriod++;
             if (nextPeriod > 6) {
                 nextPeriod = 1;
                 nextPeriodDayIndex++;
                 hasDayChanged = true;
-                // Skip Saturday/Sunday -> next Monday
-                if (nextPeriodDayIndex > 5 || nextPeriodDayIndex === 0) nextPeriodDayIndex = 1;
+                
+                if (nextPeriodDayIndex > 5 || nextPeriodDayIndex === 0) {
+                    nextPeriodDayIndex = 1;
+                }
             }
         }
     }
-
-    // If still not found, show fallback
+    
+    const section = DOM_CACHE['next-section'];
+    const status = DOM_CACHE['next-status'];
+    
+    if (!section || !status) return;
+    
+    // Handle no-next-class state
     if (!nextClass) {
-        document.getElementById('next-subject-title').innerText = "次の授業はありません";
-        document.getElementById('next-subject').innerText = "-";
-        document.getElementById('next-teacher').innerText = "-";
-        document.getElementById('next-classroom').innerText = "-";
-        document.getElementById('next-class-start').innerText = "-";
-        document.getElementById('next-class-end').innerText = "-";
-        document.getElementById('next-materials').innerHTML = "";
-        document.getElementById('next-subject-time-left').style.display = 'none';
+        section.classList.add('hidden');
+        status.style.display = 'none';
         return;
     }
-
-    // extract class info
+    
     const { className, merged, classLocation } = nextClass;
-    const timeData = bellScheduleDataSet.find(t => t.period === nextPeriod);
+    const timeData = bellScheduleDataSet?.find(t => t.period === nextPeriod);
     const fixedClass = classSyllabusDataSet.find(c => c.className === className) || {};
-    const materials = fixedClass.materials?.length ? fixedClass.materials : [];
+    const materials = fixedClass.materials;
     const teacher = fixedClass.teacher || "-";
-    const nextDayNameDisplay = weekday[nextPeriodDayIndex];
-
-    // calculate time difference safely
+    const nextDayNameDisplay = weekdayArr[nextPeriodDayIndex];
+    
+    // Calculate time to next class
     let nextStartMinutes = timeData.startTimeH * 60 + timeData.startTimeM;
     let nowMinutes = currentHour * 60 + currentMinute;
     let minutesUntilNext = nextStartMinutes - nowMinutes;
-
-    // --- UI update ---
-    if (hasDayChanged) {
-        document.getElementById('next-subject-title').innerText =
-            `次は${nextDayNameDisplay} - ${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
-        document.getElementById('next-subject-time-left').style.display = 'none';
-    } else {
-        document.getElementById('next-subject-title').innerText =
-            `次は${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
-        document.getElementById('next-subject-time-left').style.display = 'inline-block';
-        document.getElementById('next-subject-time-left').innerText =
-            `残り：${minutesUntilNext}分`;
-    }
-
-    document.getElementById('next-subject').innerText = className;
-    document.getElementById('next-teacher').innerText = teacher;
-    document.getElementById('next-classroom').innerText = classLocation;
-    document.getElementById('next-class-start').innerText =
-        `${timeData.startTimeH}:${String(timeData.startTimeM).padStart(2, '0')}`;
-    document.getElementById('next-class-end').innerText =
-        `${timeData.endTimeH}:${String(timeData.endTimeM).padStart(2, '0')}`;
     
-    // Render materials as list
-    const materialsEl = document.getElementById('next-materials');
-    materialsEl.innerHTML = materials.length > 0 
-        ? materials.map(m => `<li>${m}</li>`).join('') 
-        : '<li>なし</li>';
+    // Batch update
+    section.classList.remove('hidden');
+    
+    if (hasDayChanged) {
+        status.textContent = `次は${nextDayNameDisplay} - ${nextPeriod}限 - ${className}${merged ? " (合同)" : ""}`;
+        status.style.display = 'none';
+    } else {
+        status.textContent = `残り：${minutesUntilNext}分`;
+        status.style.display = 'inline-block';
+    }
+    
+    const body = DOM_CACHE['next-class-body'];
+    if (!body) return;
+    
+    clearTableBody(DOM_CACHE['next-section']);
+    
+    renderClassRow(body, className, teacher, classLocation,
+        `${pad2(timeData.startTimeH)}:${pad2(timeData.startTimeM)}`,
+        `${pad2(timeData.endTimeH)}:${pad2(timeData.endTimeM)}`);
+}
+
+/* ===== MATERIALS SUMMARY (Efficient DOM Updates) ===== */
+function updateMaterialsSummary(sectionId, listId, dayIndex) {
+    const section = DOM_CACHE[sectionId];
+    const listEl = DOM_CACHE[listId];
+    
+    if (!section || !listEl) return;
+    if (!personalClassesDataSet?.length || !classSyllabusDataSet?.length) {
+        section.classList.add('hidden');
+        return;
+    }
+    
+    const dayName = weekdayArr[dayIndex];
+    const dayData = personalClassesDataSet.filter(week => week.day === dayName);
+    
+    // Efficient material collection
+    const allMaterials = new Set();
+    
+    for (const cls of dayData) {
+        const syllabus = classSyllabusDataSet.find(s => s.className === cls.className);
+        if (!syllabus || !syllabus.materials) continue;
+        
+        // Use Set for automatic deduplication
+        for (const mat of syllabus.materials) {
+            if (mat && mat.trim()) {
+                allMaterials.add(mat.trim());
+            }
+        }
+    }
+    
+    // Single batch DOM operation
+    const fragment = document.createDocumentFragment();
+    
+    if (allMaterials.size === 0) {
+        listEl.innerHTML = '<li>特にありません。</li>';
+    } else {
+        for (const item of allMaterials) {
+            const li = document.createElement('li');
+            li.textContent = item;
+            fragment.appendChild(li);
+        }
+        // Batch update once
+        listEl.replaceChildren(...fragment.children);
+    }
+    
+    section.classList.remove('hidden');
 }
 
 function updateTodayMaterialsSummary() {
-    // --- Determine today's data ---
-    const todayData = personalClassesDataSet.filter(week => week.day === str_day);
-
-    let allMaterials = [];
-
-    // collect materials from all classes
-    todayData.forEach(cls => {
-        const syllabus = classSyllabusDataSet.find(s => s.className === cls.className);
-        if (!syllabus) return;
-
-        const mats = syllabus.materials;
-
-        if (Array.isArray(mats)) {
-            allMaterials.push(...mats.filter(m => m && m.trim() !== ""));
-        } else if (typeof mats === "string" && mats.trim() !== "") {
-            allMaterials.push(
-                ...mats.split(MATERIAL_SPLIT_REGEX).map(m => m.trim()).filter(m => m)
-            );
-        }
-    });
-
-    // Remove any duplicates
-    const uniqueMaterials = [...new Set(allMaterials)];
-
-    // update display
-    const listEl = document.getElementById("materials-summary-list");
-
-    if (uniqueMaterials.length === 0) {
-        listEl.innerHTML = "<li>特にありません。</li>";
-    } else {
-        listEl.innerHTML = uniqueMaterials.map(item => `<li>${item}</li>`).join('');
-    }
+    updateMaterialsSummary('materials-today-section', 'materials-summary-list', dayIndex);
 }
-
 
 function updateTomorrowMaterialsSummary() {
-    // target new dayIndex to tomorrow
-    let tomorrowIndex = dayIndex + 1;
-
-    // If today is Friday (5), Saturday (6), or Sunday (0) → show Monday (1)
+    let tomorrowIndex = (dayIndex + 1) % 7;
+    
+    // Handle weekend transition to Monday
     if (dayIndex >= 5 || dayIndex === 0) {
         tomorrowIndex = 1; // Monday
-    } else if (tomorrowIndex > 6) {
-        tomorrowIndex = 1; // wrap around from Sunday to Monday
     }
-
-    const upcomingDay = weekday[tomorrowIndex];
-    const dayData = personalClassesDataSet.filter(week => week.day === upcomingDay);
-
-    let allMaterials = [];
-
-    // Collect materials from all classes
-    dayData.forEach(cls => {
-        const syllabus = classSyllabusDataSet.find(s => s.className === cls.className);
-        if (!syllabus) return;
-
-        const mats = syllabus.materials;
-
-        if (Array.isArray(mats)) {
-            allMaterials.push(...mats.filter(m => m && m.trim() !== ""));
-        } else if (typeof mats === "string" && mats.trim() !== "") {
-            allMaterials.push(
-                ...mats.split(MATERIAL_SPLIT_REGEX).map(m => m.trim()).filter(m => m)
-            );
-        }
-    });
-
-    // Remove any duplicates
-    const uniqueMaterials = [...new Set(allMaterials)];
-
-    // Update display
-    document.getElementById("tomorrows-materials-summary-title").innerText = `${upcomingDay}の持ち物一覧`;
-    const listEl = document.getElementById("tomorrows-materials-summary-list");
-
-    if (uniqueMaterials.length === 0) {
-        listEl.innerHTML = "<li>特にありません。</li>";
-    } else {
-        listEl.innerHTML = uniqueMaterials.map(item => `<li>${item}</li>`).join('');
-    }
+    
+    updateMaterialsSummary('materials-tomorrow-section', 'tomorrows-materials-summary-list', tomorrowIndex);
 }
 
+/* ===== APP INITIALIZATION (Lazy Loading) ===== */
+function initApp() {
+    processDatas().then(() => {
+        // Hide loader, show app
+        const loader = DOM_CACHE['loading-container'];
+        const app = DOM_CACHE['app-container'];
+        
+        if (loader) loader.style.display = 'none';
+        if (app) app.classList.remove('hidden');
+        
+        // Initial update
+        searchProcessedDataAndSetVariables();
+        
+        // Set up periodic updates (throttled)
+        setInterval(searchProcessedDataAndSetVariables, CONFIG.UPDATE_INTERVAL);
+    });
+}
 
-
-// initialize everything
-processDatas().then(() => {
-    searchProcessedDataAndSetVariables();
-    setInterval(searchProcessedDataAndSetVariables, 1000 * 60); // update every minute
-});
+// Start the app when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
