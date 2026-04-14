@@ -168,6 +168,32 @@ table tr:hover td {
     margin: 0;
 }
 
+/* Remove bullets from materials summary lists */
+#materials-summary-list,
+#tomorrows-materials-summary-list {
+    list-style: none !important;
+    padding: 0;
+    margin: 0;
+}
+
+#materials-summary-list li,
+#tomorrows-materials-summary-list li {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    padding: 0.375rem 0.75rem;
+    margin: 0.25rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+#materials-summary-list li:hover,
+#tomorrows-materials-summary-list li:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
 .materials li {
     display: inline-block;
     background: var(--bg-tertiary);
