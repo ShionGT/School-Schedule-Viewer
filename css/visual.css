@@ -193,7 +193,7 @@ table tr:hover td {
 }
 
 #current-subject-time-left {
-    display: inline-block;
+    display: inline-block !important;
     background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
     color: white;
     padding: 0.25rem 0.75rem;
@@ -201,6 +201,7 @@ table tr:hover td {
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 1rem;
+    white-space: nowrap;
 }
 
 /* Next Class Styling */
@@ -212,7 +213,7 @@ table tr:hover td {
 }
 
 #next-subject-time-left {
-    display: inline-block;
+    display: inline-block !important;
     background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
     color: white;
     padding: 0.25rem 0.75rem;
@@ -220,6 +221,7 @@ table tr:hover td {
     font-size: 0.85rem;
     font-weight: 600;
     margin-bottom: 1rem;
+    white-space: nowrap;
 }
 
 /* Empty State */
