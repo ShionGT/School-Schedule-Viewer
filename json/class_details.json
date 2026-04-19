@@ -1,79 +1,46 @@
 [
   {
-    "className": "CS18",
-    "teacher": "中川先生",
-    "materials": [
-      "ITワールド"
-    ]
-  },
-  {
-    "className": "CT18",
-    "teacher": "畑先生",
+    "className": "IH19",
+    "teacher": "堂前和希先生",
     "materials": []
   },
   {
-    "className": "DB18",
-    "teacher": "河西先生",
-    "materials": [
-      "スッキリわかるSQL入門"
-    ]
-  },
-  {
-    "className": "FX18",
-    "teacher": "村上先生",
+    "className": "DB19",
+    "teacher": "杉山江里子先生",
     "materials": []
   },
   {
-    "className": "IH18",
-    "teacher": "村上先生",
+    "className": "JS19",
+    "teacher": "吉川洋平講師",
     "materials": []
   },
   {
-    "className": "IS18",
-    "teacher": "杉山先生",
-    "materials": [
-      "IT戦略とマネジメント"
-    ]
-  },
-  {
-    "className": "IT18",
-    "teacher": "松本先生",
+    "className": "IO19",
+    "teacher": "奥野雅之講師",
     "materials": []
   },
   {
-    "className": "JS18",
-    "teacher": "吉川先生",
+    "className": "FX19",
+    "teacher": "堂前和希先生",
     "materials": []
   },
   {
-    "className": "PY18",
-    "teacher": "近藤先生",
-    "materials": [
-      "Pythonの教科書"
-    ]
-  },
-  {
-    "className": "SL18",
-    "teacher": "江畑先生",
-    "materials": [
-      "情報セキュリティ 要点＆問題集(１２−１月)",
-      "データ構造とアルゴリズム(１月ー２月)"
-    ]
-  },
-  {
-    "className": "WF18",
-    "teacher": "村上先生",
-    "materials": [
-      "ホームページ辞典"
-    ]
-  },
-  {
-    "className": "OP",
-    "teacher": "",
+    "className": "PY19",
+    "teacher": "清水一明先生",
     "materials": []
   },
   {
-    "className": "ランチタイム",
+    "className": "NT19",
+    "teacher": "田坂啓輔講師",
+    "materials": []
+  },
+  {
+    "className": "CS23",
+    "teacher": "清水一明先生",
+    "materials": []
+  },
+  {
+    "className": "昼休み",
     "teacher": "",
     "materials": []
   }

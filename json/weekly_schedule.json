@@ -3,210 +3,112 @@
         "day": "月曜日",
         "period": 1,
         "merged": false,
-        "className": "OP",
-        "classLocation": 0
-    },
-    {
-        "day": "月曜日",
-        "period": 2,
-        "merged": false,
-        "className": "PY18",
-        "classLocation": 192
-    },
-    {
-        "day": "月曜日",
-        "period": 3,
-        "merged": false,
-        "className": "PY18",
-        "classLocation": 192
-    },
-    {
-        "day": "月曜日",
-        "period": 4,
-        "merged": false,
-        "className": "ランチタイム",
-        "classLocation": 192
-    },
-    {
-        "day": "月曜日",
-        "period": 5,
-        "merged": false,
-        "className": "PY18",
-        "classLocation": 192
-    },
-    {
-        "day": "月曜日",
-        "period": 6,
-        "merged": false,
-        "className": "IT18",
-        "classLocation": 192
-    },
-    {
-        "day": "火曜日",
-        "period": 1,
-        "merged": false,
-        "className": "PY18",
-        "classLocation": 192
-    },
-    {
-        "day": "火曜日",
-        "period": 2,
-        "merged": false,
-        "className": "PY18",
-        "classLocation": 192
-    },
-    {
-        "day": "火曜日",
-        "period": 3,
-        "merged": true,
-        "className": "ランチタイム",
-        "classLocation": 193
-    },
-    {
-        "day": "火曜日",
-        "period": 4,
-        "merged": true,
-        "className": "IS18",
-        "classLocation": 334
-    },
-    {
-        "day": "火曜日",
-        "period": 5,
-        "merged": false,
-        "className": "DB18",
+        "className": "IH19",
         "classLocation": 335
     },
     {
+        "day": "月曜日",
+        "period": 2,
+        "merged": false,
+        "className": "FX19",
+        "classLocation": 335
+    },
+    {
+        "day": "月曜日",
+        "period": 3,
+        "merged": false,
+        "className": "PY19",
+        "classLocation": 141
+    },
+    {
+        "day": "月曜日",
+        "period": 4,
+        "merged": false,
+        "className": "CS23",
+        "classLocation": 141
+    },
+    {
         "day": "火曜日",
-        "period": 6,
+        "period": 1,
         "merged": false,
-        "className": "OP",
-        "classLocation": 0
+        "className": "DB19",
+        "classLocation": 121
     },
-        {
+    {
+        "day": "火曜日",
+        "period": 2,
+        "merged": false,
+        "className": "DB19",
+        "classLocation": 121
+    },
+    {
         "day": "水曜日",
         "period": 1,
         "merged": false,
-        "className": "IH18",
-        "classLocation": 192
+        "className": "JS19",
+        "classLocation": 201
     },
     {
         "day": "水曜日",
         "period": 2,
         "merged": false,
-        "className": "JS18",
-        "classLocation": 192
+        "className": "JS19",
+        "classLocation": 201
     },
     {
         "day": "水曜日",
         "period": 3,
-        "merged": true,
-        "className": "SL18",
-        "classLocation": 241
+        "merged": false,
+        "className": "昼休み",
+        "classLocation": 201
     },
     {
         "day": "水曜日",
         "period": 4,
         "merged": false,
-        "className": "ランチタイム",
-        "classLocation": 192
+        "className": "CS23",
+        "classLocation": 201
     },
     {
-        "day": "水曜日",
-        "period": 5,
-        "merged": false,
-        "className": "WF18",
-        "classLocation": 192
-    },
-    {
-        "day": "水曜日",
-        "period": 6,
-        "merged": false,
-        "className": "WF18",
-        "classLocation": 192
-    },
-        {
         "day": "木曜日",
         "period": 1,
-        "merged": true,
-        "className": "CS18",
-        "classLocation": 334
+        "merged": false,
+        "className": "IO9",
+        "classLocation": 201
     },
     {
         "day": "木曜日",
         "period": 2,
-        "merged": true,
-        "className": "CS18",
-        "classLocation": 334
+        "merged": false,
+        "className": "IO19",
+        "classLocation": 201
     },
     {
         "day": "木曜日",
         "period": 3,
-        "merged": true,
-        "className": "ランチタイム",
-        "classLocation": 193
+        "merged": false,
+        "className": "PY19",
+        "classLocation": 141
     },
     {
-        "day": "木曜日",
-        "period": 4,
-        "merged": false,
-        "className": "WF18",
-        "classLocation": 192
-    },
-    {
-        "day": "木曜日",
-        "period": 5,
-        "merged": false,
-        "className": "WF18",
-        "classLocation": 192
-    },
-    {
-        "day": "木曜日",
-        "period": 6,
-        "merged": false,
-        "className": "FX18",
-        "classLocation": 192
-    },
-        {
         "day": "金曜日",
         "period": 1,
         "merged": false,
-        "className": "CT18",
-        "classLocation": 332
-    },
-    {
-        "day": "金曜日",
-        "period": 2,
-        "merged": true,
-        "className": "SL18",
-        "classLocation": 331
+        "className": "IH19",
+        "classLocation": 335
     },
     {
         "day": "金曜日",
         "period": 3,
-        "merged": true,
-        "className": "ランチタイム",
-        "classLocation": 331
+        "merged": false,
+        "className": "NT19",
+        "classLocation": 246
     },
     {
         "day": "金曜日",
         "period": 4,
-        "merged": true,
-        "className": "CS18",
-        "classLocation": 331
-    },
-    {
-        "day": "金曜日",
-        "period": 5,
-        "merged": true,
-        "className": "CS18",
-        "classLocation": 331
-    },
-    {
-        "day": "金曜日",
-        "period": 6,
         "merged": false,
-        "className": "OP",
-        "classLocation": 0
+        "className": "NT19",
+        "classLocation": 246
     }
 ]
