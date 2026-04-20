@@ -219,7 +219,7 @@ function updateNextClass(period) {
   let count = 0;
   while (!classData) {
     if (500 <= count) {
-      console.warn("next class is not found in the next 500 periods!");
+      console.warn("❌ Next class is not found in the next 500 periods!");
       break;
     }
     nextDay = getNextPeriod(nextPeriod).nextDay;
