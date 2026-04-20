@@ -215,12 +215,19 @@ function updateNextClass(period) {
   let classData = personalClassesDataSet.find(
     (d) => d.period === nextPeriod && d.day === weekdayArr[nextDay],
   );
+  // added count for safety
+  let count = 0;
   while (!classData) {
+    if (500 <= count) {
+      console.warn("next class is not found in the next 500 periods!");
+      break;
+    }
     nextDay = getNextPeriod(nextPeriod).nextDay;
     nextPeriod = getNextPeriod(nextPeriod).nextPeriod;
     classData = personalClassesDataSet.find(
       (d) => d.period === nextPeriod && d.day === weekdayArr[nextDay],
     );
+    count++;
   }
 
   const timeData = bellScheduleDataSet.find((t) => t.period === nextPeriod);
