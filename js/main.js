@@ -97,7 +97,7 @@ function getTodayClasses(dayName) {
 
 /* ===== TIME ===== */
 function updateTime() {
-  const now = new Date();
+  now = new Date();
   dayIndex = now.getDay();
   currentHour = now.getHours();
   currentMinute = now.getMinutes();
@@ -123,16 +123,37 @@ function getCurrentPeriod() {
 }
 
 function getNextPeriod(period) {
-  let next = period + 1;
+  let nextPeriod = 0;
   let nextDay = dayIndex;
 
-  if (next > 6) {
-    next = 1;
+  // retrieve period if no period
+  if (!period) {
+    period = 0;
+
+    for (let i = bellScheduleDataSet.length - 1; 0 <= i; i--) {
+      let data = bellScheduleDataSet[i];
+      if (data.startTimeH < currentHour) {
+        period = data.period;
+        break;
+      } else if (
+        data.startTimeH == currentHour &&
+        data.startTimeM < currentMinute
+      ) {
+        period = data.period;
+        break;
+      }
+    }
+  }
+
+  nextPeriod = period + 1;
+
+  if (nextPeriod > 6) {
+    nextPeriod = 1;
     nextDay++;
     if (nextDay > 5 || nextDay === 0) nextDay = 1;
   }
 
-  return { next, nextDay };
+  return { nextPeriod, nextDay };
 }
 
 /* ===== RENDER ===== */
@@ -190,9 +211,9 @@ function updateNextClass(period) {
   const status = DOM_CACHE["next-status"];
   const body = DOM_CACHE["next-class-body"];
 
-  if (period === null) period = 0;
+  let { nextPeriod, nextDay } = getNextPeriod(period);
 
-  let { next, nextDay } = getNextPeriod(period);
+  console.log(nextPeriod);
 
   let cls = null;
 
@@ -201,16 +222,7 @@ function updateNextClass(period) {
     const dayName = weekdayArr[nextDay];
     const dayData = getTodayClasses(dayName);
 
-    cls = dayData.find((c) => c.period === next);
-
-    if (!cls) {
-      next++;
-      if (next > 6) {
-        next = 1;
-        nextDay++;
-        if (nextDay > 5 || nextDay === 0) nextDay = 1;
-      }
-    }
+    cls = dayData.find((c) => c.period === nextPeriod);
   }
 
   if (!cls) {
@@ -218,25 +230,10 @@ function updateNextClass(period) {
     return;
   }
 
-  const timeData = bellScheduleDataSet.find((t) => t.period === next);
-
-  // ===== FIXED TIME CALCULATION =====
-  const now = new Date();
-
-  const nextDate = new Date();
-  nextDate.setHours(timeData.startTimeH, timeData.startTimeM, 0, 0);
-
-  let dayDiff = nextDay - dayIndex;
-  if (dayDiff < 0) dayDiff += 7;
-
-  nextDate.setDate(now.getDate() + dayDiff);
-
-  const diffMs = nextDate - now;
-  const totalMinutes = Math.floor(diffMs / 60000);
-
-  const days = Math.floor(totalMinutes / (60 * 24));
-  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
-  const minutes = totalMinutes % 60;
+  const timeData = bellScheduleDataSet.find((t) => t.period === nextPeriod);
+  const days = nextDay - dayIndex;
+  const hours = timeData.startTimeH - currentHour;
+  const minutes = timeData.startTimeM - currentMinute;
 
   // ===== DISPLAY =====
   section.classList.remove("hidden");
