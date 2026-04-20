@@ -1,123 +1,157 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="School Schedule Viewer - View your class schedule and materials">
-    <meta name="theme-color" content="#6366f1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="School Schedule Viewer - View your class schedule and materials"
+    />
+    <meta name="theme-color" content="#6366f1" />
     <title>学校の時間割 | School Schedule</title>
-    <link rel="stylesheet" href="css/visual.css">
-</head>
-<body>
+    <link rel="stylesheet" href="css/visual.css" />
+  </head>
+  <body>
     <!-- Loading State -->
     <div id="loading-container" class="container">
-        <div class="loader">
-            <div class="loader-bar"></div>
-        </div>
-        <p class="loading-text">時間割を読み込み中...</p>
+      <div class="loader">
+        <div class="loader-bar"></div>
+      </div>
+      <p class="loading-text">時間割を読み込み中...</p>
     </div>
 
     <!-- Main App (hidden until loaded) -->
     <main id="app-container" class="container hidden">
-        
-        <!-- Header: Current Time & Day -->
-        <header class="card card-header">
-            <h1 id="current-time" class="time-display">--:--</h1>
-            <p id="current-day" class="day-display">曜日を読み込み中...</p>
-        </header>
+      <!-- Header: Current Time & Day -->
+      <header class="card card-header">
+        <h1 id="current-time" class="time-display">--:--</h1>
+        <p id="current-day" class="day-display">曜日を読み込み中...</p>
+      </header>
 
-        <!-- Current Class Section -->
-        <section id="current-section" class="card current-card hidden">
-            <h2 class="section-title">
-                <span class="section-icon">📚</span>
-                現在の授業
-            </h2>
-            <div id="current-status" class="status-box status-current">
-                授業を開始しました
-            </div>
-            <table id="current-class-table" class="schedule-table">
-                <thead>
-                    <tr>
-                        <th scope="col">科目</th>
-                        <th scope="col">教官</th>
-                        <th scope="col">教室</th>
-                        <th scope="col">開始時間</th>
-                        <th scope="col">終了時間</th>
-                        <th scope="col">持ち物</th>
-                    </tr>
-                </thead>
-                <tbody id="current-class-body">
-                    <!-- Dynamic content -->
-                    <tr>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td class="materials"><span>-</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+      <!-- Current Class Section -->
+      <section id="current-section" class="card current-card hidden">
+        <h2 class="section-title">
+          <span class="section-icon">📚</span>
+          現在の授業
+        </h2>
+        <div id="current-status" class="status-box status-current">
+          授業を開始しました
+        </div>
+        <table id="current-class-table" class="schedule-table">
+          <thead>
+            <tr>
+              <th scope="col">科目</th>
+              <th scope="col">教官</th>
+              <th scope="col">教室</th>
+              <th scope="col">開始時間</th>
+              <th scope="col">終了時間</th>
+              <th scope="col">持ち物</th>
+            </tr>
+          </thead>
+          <tbody id="current-class-body">
+            <!-- Dynamic content -->
+            <tr>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="materials"><span>-</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-        <!-- Next Class Section -->
-        <section id="next-section" class="card next-card hidden">
-            <h2 class="section-title">
-                <span class="section-icon">🔜</span>
-                次の授業
-            </h2>
-            <div id="next-status" class="status-box status-warning">
-                授業を終了しました
-            </div>
-            <table id="next-class-table" class="schedule-table">
-                <thead>
-                    <tr>
-                        <th scope="col">科目</th>
-                        <th scope="col">教官</th>
-                        <th scope="col">教室</th>
-                        <th scope="col">開始時間</th>
-                        <th scope="col">終了時間</th>
-                        <th scope="col">持ち物</th>
-                    </tr>
-                </thead>
-                <tbody id="next-class-body">
-                    <!-- Dynamic content -->
-                    <tr>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td>-</td>
-                        <td class="materials"><span>-</span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+      <!-- Next Class Section -->
+      <section id="next-section" class="card next-card hidden">
+        <h2 class="section-title">
+          <span class="section-icon">🔜</span>
+          次の授業
+        </h2>
+        <div id="next-status" class="status-box status-warning">
+          授業を終了しました
+        </div>
+        <table id="next-class-table" class="schedule-table">
+          <thead>
+            <tr>
+              <th scope="col">科目</th>
+              <th scope="col">教官</th>
+              <th scope="col">教室</th>
+              <th scope="col">開始時間</th>
+              <th scope="col">終了時間</th>
+              <th scope="col">持ち物</th>
+            </tr>
+          </thead>
+          <tbody id="next-class-body">
+            <!-- Dynamic content -->
+            <tr>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td>-</td>
+              <td class="materials"><span>-</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
 
-        <!-- Today's Materials Summary -->
-        <section id="materials-today-section" class="card materials-card hidden">
-            <h2 class="section-title">
-                <span class="section-icon">📋</span>
-                今日の持ち物一覧
-            </h2>
-            <ul id="materials-summary-list" class="materials-list empty-state">
-                <li>まだ授業情報を読み込んでいます...</li>
-            </ul>
-        </section>
+      <!-- Today's Materials Summary -->
+      <section id="materials-today-section" class="card materials-card hidden">
+        <h2 class="section-title">
+          <span class="section-icon">📋</span>
+          今日の持ち物一覧
+        </h2>
+        <ul id="materials-summary-list" class="materials-list empty-state">
+          <li>まだ授業情報を読み込んでいます...</li>
+        </ul>
+      </section>
 
-        <!-- Tomorrow's Materials Summary -->
-        <section id="materials-tomorrow-section" class="card materials-card hidden">
-            <h2 class="section-title">
-                <span class="section-icon">📅</span>
-                明日の持ち物一覧
-            </h2>
-            <ul id="tomorrows-materials-summary-list" class="materials-list empty-state">
-                <li>まだ授業情報を読み込んでいます...</li>
-            </ul>
-        </section>
+      <!-- Tomorrow's Materials Summary -->
+      <section
+        id="materials-tomorrow-section"
+        class="card materials-card hidden"
+      >
+        <h2 class="section-title">
+          <span class="section-icon">📅</span>
+          明日の持ち物一覧
+        </h2>
+        <ul
+          id="tomorrows-materials-summary-list"
+          class="materials-list empty-state"
+        >
+          <li>まだ授業情報を読み込んでいます...</li>
+        </ul>
+      </section>
 
+      <section id="quicklink-section" class="card quicklink-card">
+        <h2 class="section-title">
+          <span class="section-icon">🔗</span>
+          クイックリンク
+        </h2>
+        <div id="quicklink-container" class="quicklink-container">
+          <!-- Dynamic content -->
+          <a
+            href="https://nkzacjp.sharepoint.com/:f:/r/sites/THC25A-PI51A215/Shared%20Documents/00_%E8%B3%87%E6%96%99%E3%83%BB%E3%83%AA%E3%83%B3%E3%82%AF%E7%BD%AE%E3%81%8D%E5%A0%B4/%E5%BA%A7%E5%B8%AD%E8%A1%A8?csf=1&web=1&e=hz0EFk"
+            class="quicklink-item"
+            target="_blank"
+          >
+            <span class="quicklink-icon">🪑</span>
+            座席表
+          </a>
+          <br />
+          <a
+            href="https://docs.google.com/spreadsheets/d/1_RWSN4awM9JaPhS5ktbiJPuTVlUuj03b8TlcIhFeSgY/edit?usp=sharing"
+            class="quicklink-item"
+            target="_blank"
+          >
+            <span class="quicklink-icon">⏰</span>
+            時間割
+          </a>
+        </div>
+      </section>
     </main>
 
     <script src="js/main.js"></script>
-</body>
+  </body>
 </html>
