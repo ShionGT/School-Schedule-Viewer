@@ -212,28 +212,25 @@ function updateNextClass(period) {
   const body = DOM_CACHE["next-class-body"];
 
   let { nextPeriod, nextDay } = getNextPeriod(period);
-
-  console.log(nextPeriod);
-
-  let cls = null;
-
-  // Find next available class
-  for (let i = 0; i < 10 && !cls; i++) {
-    const dayName = weekdayArr[nextDay];
-    const dayData = getTodayClasses(dayName);
-
-    cls = dayData.find((c) => c.period === nextPeriod);
-  }
-
-  if (!cls) {
-    section.classList.add("hidden");
-    return;
+  let classData = personalClassesDataSet.find(
+    (d) => d.period === nextPeriod && d.day === weekdayArr[nextDay],
+  );
+  while (!classData) {
+    nextDay = getNextPeriod(nextPeriod).nextDay;
+    nextPeriod = getNextPeriod(nextPeriod).nextPeriod;
+    classData = personalClassesDataSet.find(
+      (d) => d.period === nextPeriod && d.day === weekdayArr[nextDay],
+    );
   }
 
   const timeData = bellScheduleDataSet.find((t) => t.period === nextPeriod);
-  const days = nextDay - dayIndex;
-  const hours = timeData.startTimeH - currentHour;
-  const minutes = timeData.startTimeM - currentMinute;
+  let totalMinutes =
+    (nextDay - dayIndex) * 24 * 60 +
+    (timeData.startTimeH - currentHour) * 60 +
+    (timeData.startTimeM - currentMinute);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
 
   // ===== DISPLAY =====
   section.classList.remove("hidden");
@@ -247,11 +244,10 @@ function updateNextClass(period) {
   }
 
   // Optional: show exact next class time
-  const nextDayName = weekdayArr[nextDay];
-  status.textContent += ` (${nextDayName} ${pad2(timeData.startTimeH)}:${pad2(timeData.startTimeM)})`;
+  status.textContent += ` (${classData.day} ${pad2(timeData.startTimeH)}:${pad2(timeData.startTimeM)})`;
 
   clearTableBody(body);
-  renderClassRow(body, cls, timeData);
+  renderClassRow(body, classData, timeData);
 }
 
 /* ===== MATERIALS ===== */
