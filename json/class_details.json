@@ -7,7 +7,7 @@
   {
     "className": "DB19",
     "teacher": "杉山江里子先生",
-    "materials": []
+    "materials": ["スッキリわかるSQL入門"]
   },
   {
     "className": "JS19",
@@ -37,6 +37,11 @@
   {
     "className": "CS23",
     "teacher": "清水一明先生",
+    "materials": []
+  },
+  {
+    "className": "CS23A",
+    "teacher": "堂前和希先生",
     "materials": []
   },
   {
